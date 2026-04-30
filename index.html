@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>H4CK3R TRACKER // SWENR</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#00ff41">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="H4CK3R">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root {
+    --green: #00ff41;
+    --green-dim: #00aa29;
+    --green-glow: rgba(0,255,65,0.3);
+    --red: #ff0040;
+    --amber: #ffb300;
+    --bg: #0a0a0a;
+    --bg2: #0d0d0d;
+    --panel: rgba(0,255,65,0.04);
+    --border: rgba(0,255,65,0.2);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* SCANLINES */
+  body::before {
+    content: '';
+    position: fixed;
+    top:0; left:0; right:0; bottom:0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.15) 2px,
+      rgba(0,0,0,0.15) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+    animation: scanMove 8s linear infinite;
+  }
+
+  @keyframes scanMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 100px; }
+  }
+
+  /* MATRIX RAIN CANVAS */
+  #matrix {
+    position: fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    opacity: 0.06;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .app {
+    position: relative;
+    z-index: 10;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    padding: 20px 0 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  .header-logo {
+    font-family: 'VT323', monospace;
+    font-size: 42px;
+    color: var(--green);
+    text-shadow: 0 0 20px var(--green), 0 0 40px var(--green-glow);
+    letter-spacing: 4px;
+    animation: flicker 6s infinite;
+  }
+
+  @keyframes flicker {
+    0%,100% { opacity:1; }
+    92% { opacity:1; }
+    93% { opacity:0.7; }
+    94% { opacity:1; }
+    96% { opacity:0.4; }
+    97% { opacity:1; }
+  }
+
+  .header-sub {
+    font-size: 11px;
+    color: var(--green-dim);
+    letter-spacing: 6px;
+    margin-top: 4px;
+    opacity: 0.7;
+  }
+
+  .user-tag {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 3px 12px;
+    border: 1px solid var(--green-dim);
+    font-size: 12px;
+    color: var(--green-dim);
+    letter-spacing: 3px;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+  }
+
+  .tab {
+    flex:1;
+    padding: 10px 4px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--green-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .tab.active {
+    background: var(--panel);
+    border-color: var(--green);
+    color: var(--green);
+    box-shadow: 0 0 10px var(--green-glow), inset 0 0 10px rgba(0,255,65,0.05);
+    text-shadow: 0 0 8px var(--green);
+  }
+
+  .tab:hover:not(.active) {
+    border-color: var(--green-dim);
+    color: var(--green);
+  }
+
+  /* OVERALL STATS */
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .stat-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 10px 8px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'VT323', monospace;
+    font-size: 32px;
+    color: var(--green);
+    text-shadow: 0 0 10px var(--green-glow);
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 9px;
+    color: var(--green-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* PROGRESS BAR */
+  .progress-section {
+    margin-bottom: 20px;
+    padding: 12px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+  }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+
+  .progress-bar-bg {
+    height: 8px;
+    background: rgba(0,255,65,0.1);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green-dim), var(--green));
+    box-shadow: 0 0 8px var(--green);
+    transition: width 0.8s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top:0; right:0; bottom:0; width:4px;
+    background: white;
+    opacity: 0.6;
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:0.6} 50%{opacity:1} }
+
+  /* LEVEL GRID */
+  .section-title {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--green-dim);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+  }
+
+  .section-title span {
+    color: var(--green);
+    text-shadow: 0 0 6px var(--green-glow);
+  }
+
+  .levels-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+
+  .level-btn {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--green-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .level-btn.done {
+    background: rgba(0,255,65,0.12);
+    border-color: var(--green);
+    color: var(--green);
+    text-shadow: 0 0 6px var(--green);
+    box-shadow: 0 0 8px var(--green-glow), inset 0 0 8px rgba(0,255,65,0.08);
+  }
+
+  .level-btn.done::after {
+    content: '✓';
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    font-size: 8px;
+    color: var(--green);
+    opacity: 0.6;
+  }
+
+  .level-btn.current {
+    border-color: var(--amber);
+    color: var(--amber);
+    text-shadow: 0 0 6px rgba(255,179,0,0.5);
+    animation: currentPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes currentPulse {
+    0%,100% { box-shadow: 0 0 4px rgba(255,179,0,0.3); }
+    50% { box-shadow: 0 0 12px rgba(255,179,0,0.6); }
+  }
+
+  .level-btn:hover:not(.done) {
+    border-color: var(--green-dim);
+    color: var(--green);
+    background: rgba(0,255,65,0.05);
+  }
+
+  /* NOTES PANEL */
+  .notes-panel {
+    display: none;
+  }
+
+  .notes-panel.active-panel {
+    display: block;
+  }
+
+  .levels-panel {
+    display: none;
+  }
+
+  .levels-panel.active-panel {
+    display: block;
+  }
+
+  /* SELECTED LEVEL DETAIL */
+  .level-detail {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 14px;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .level-detail.visible {
+    display: block;
+    animation: slideIn 0.2s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity:0; transform: translateY(-6px); }
+    to { opacity:1; transform: translateY(0); }
+  }
+
+  .detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .detail-title {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    text-shadow: 0 0 8px var(--green-glow);
+  }
+
+  .detail-platform {
+    font-size: 10px;
+    padding: 2px 8px;
+    border: 1px solid var(--green-dim);
+    color: var(--green-dim);
+    letter-spacing: 2px;
+  }
+
+  .auto-notes {
+    margin-bottom: 10px;
+  }
+
+  .auto-note-item {
+    font-size: 11px;
+    color: var(--green-dim);
+    padding: 4px 0;
+    padding-left: 12px;
+    border-left: 2px solid var(--green-dim);
+    margin-bottom: 4px;
+    line-height: 1.5;
+  }
+
+  .auto-note-item strong {
+    color: var(--green);
+  }
+
+  .user-note-area {
+    width: 100%;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    padding: 10px;
+    resize: vertical;
+    min-height: 70px;
+    outline: none;
+    transition: border-color 0.2s;
+    line-height: 1.6;
+  }
+
+  .user-note-area:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 8px var(--green-glow);
+  }
+
+  .user-note-area::placeholder {
+    color: rgba(0,255,65,0.2);
+  }
+
+  .detail-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .btn {
+    flex:1;
+    padding: 10px;
+    border: 1px solid;
+    background: transparent;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .btn-complete {
+    border-color: var(--green);
+    color: var(--green);
+  }
+  .btn-complete:hover {
+    background: rgba(0,255,65,0.1);
+    box-shadow: 0 0 10px var(--green-glow);
+    text-shadow: 0 0 6px var(--green);
+  }
+
+  .btn-incomplete {
+    border-color: var(--red);
+    color: var(--red);
+    font-size: 10px;
+  }
+  .btn-incomplete:hover {
+    background: rgba(255,0,64,0.08);
+  }
+
+  /* ALL NOTES VIEW */
+  .all-notes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .note-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green-dim);
+    padding: 12px;
+  }
+
+  .note-card.has-note {
+    border-left-color: var(--green);
+  }
+
+  .note-card-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .note-card-title {
+    font-size: 13px;
+    color: var(--green);
+    letter-spacing: 2px;
+  }
+
+  .note-card-platform {
+    font-size: 9px;
+    color: var(--green-dim);
+    letter-spacing: 2px;
+    padding: 1px 6px;
+    border: 1px solid var(--border);
+  }
+
+  .note-card-content {
+    font-size: 11px;
+    color: var(--green-dim);
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+
+  .note-card-auto {
+    font-size: 10px;
+    color: rgba(0,255,65,0.35);
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+    line-height: 1.5;
+  }
+
+  /* BOOT SCREEN */
+  .boot-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    color: var(--green);
+    text-align: left;
+    padding: 40px;
+  }
+
+  .boot-line {
+    opacity: 0;
+    animation: bootLine 0.3s forwards;
+    letter-spacing: 2px;
+    margin: 2px 0;
+    text-shadow: 0 0 6px var(--green-glow);
+    width: 100%;
+    max-width: 360px;
+  }
+
+  @keyframes bootLine {
+    to { opacity: 1; }
+  }
+
+  /* TERMINAL CURSOR */
+  .cursor {
+    display: inline-block;
+    width: 10px;
+    height: 16px;
+    background: var(--green);
+    animation: blink 1s step-end infinite;
+    vertical-align: middle;
+    box-shadow: 0 0 6px var(--green);
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* GLITCH EFFECT */
+  .glitch {
+    position: relative;
+  }
+  .glitch::before, .glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top:0; left:0;
+    width:100%;
+  }
+  .glitch::before {
+    color: var(--red);
+    animation: glitch1 4s infinite;
+    clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
+    transform: translate(-2px, 0);
+  }
+  .glitch::after {
+    color: #0ff;
+    animation: glitch2 4s infinite;
+    clip-path: polygon(0 60%, 100% 60%, 100% 70%, 0 70%);
+    transform: translate(2px, 0);
+  }
+  @keyframes glitch1 { 0%,90%,100%{opacity:0} 91%{opacity:0.6} 93%{opacity:0} 95%{opacity:0.4} }
+  @keyframes glitch2 { 0%,85%,100%{opacity:0} 86%{opacity:0.5} 88%{opacity:0} 92%{opacity:0.3} }
+
+  .empty-state {
+    text-align: center;
+    padding: 30px;
+    color: rgba(0,255,65,0.25);
+    font-size: 13px;
+    letter-spacing: 2px;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--green-dim); }
+
+  .thm-color { color: #ff6b35; }
+  .bandit-color { color: var(--green); }
+</style>
+</head>
+<body>
+
+<canvas id="matrix"></canvas>
+
+<!-- BOOT SCREEN -->
+<div class="boot-screen" id="bootScreen">
+  <div style="width:100%; max-width:360px;">
+    <div class="boot-line" style="animation-delay:0.1s">[ OK ] INITIALIZING H4CK3R TRACKER v2.3.1</div>
+    <div class="boot-line" style="animation-delay:0.5s">[ OK ] LOADING BANDIT MODULE...</div>
+    <div class="boot-line" style="animation-delay:0.9s">[ OK ] LOADING TRYHACKME MODULE...</div>
+    <div class="boot-line" style="animation-delay:1.3s">[ OK ] DECRYPTING USER PROFILE: SWENR</div>
+    <div class="boot-line" style="animation-delay:1.7s">[ OK ] ESTABLISHING SECURE CONNECTION...</div>
+    <div class="boot-line" style="animation-delay:2.1s; color:var(--amber)">[ !! ] REMEMBER: HACK ETHICALLY</div>
+    <div class="boot-line" style="animation-delay:2.5s">[ OK ] SYSTEM READY <span class="cursor"></span></div>
+  </div>
+</div>
+
+<div class="app" id="mainApp" style="display:none">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-logo glitch" data-text="H4CK3R_TRACK">H4CK3R_TRACK</div>
+    <div class="header-sub">ETHICAL HACKING PROGRESS SYSTEM</div>
+    <div class="user-tag">USR: SWENR // ACTIVE</div>
+  </div>
+
+  <!-- GLOBAL STATS -->
+  <div class="stats-row">
+    <div class="stat-box">
+      <span class="stat-num" id="totalDone">0</span>
+      <span class="stat-label">Completed</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-num" id="totalLevels">0</span>
+      <span class="stat-label">Total</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-num" id="totalPct">0%</span>
+      <span class="stat-label">Progress</span>
+    </div>
+  </div>
+
+  <!-- OVERALL PROGRESS -->
+  <div class="progress-section">
+    <div class="progress-header">
+      <span style="letter-spacing:2px">OVERALL PROGRESS</span>
+      <span id="progressText" style="color:var(--green)">0 / 0</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('bandit')">⚡ BANDIT</button>
+    <button class="tab" onclick="switchTab('thm')">🔥 TRYHACKME</button>
+    <button class="tab" onclick="switchTab('notes')">📁 NOTES</button>
+  </div>
+
+  <!-- BANDIT PANEL -->
+  <div class="levels-panel active-panel" id="banditPanel">
+    <div class="section-title">OVERTHEWIRE — <span>BANDIT</span> // 34 LEVELS</div>
+
+    <!-- Per-platform progress -->
+    <div class="progress-section" style="margin-bottom:12px">
+      <div class="progress-header">
+        <span class="bandit-color">BANDIT PROGRESS</span>
+        <span id="banditProgressText" style="color:var(--green)">0 / 34</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="banditProgressFill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="levels-grid" id="banditGrid"></div>
+
+    <div class="level-detail" id="banditDetail">
+      <div class="detail-header">
+        <div class="detail-title" id="banditDetailTitle">BANDIT 0→1</div>
+        <div class="detail-platform bandit-color">BANDIT</div>
+      </div>
+      <div class="auto-notes" id="banditAutoNotes"></div>
+      <textarea class="user-note-area" id="banditNoteInput" placeholder="> type your notes here..." rows="3"></textarea>
+      <div class="detail-actions">
+        <button class="btn btn-complete" onclick="markLevel('bandit', true)">[ MARK DONE ]</button>
+        <button class="btn btn-incomplete" onclick="markLevel('bandit', false)">[ UNDO ]</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- THM PANEL -->
+  <div class="levels-panel" id="thmPanel">
+    <div class="section-title">TRYHACKME — <span class="thm-color">JR PENTEST PATH</span></div>
+
+    <div class="progress-section" style="margin-bottom:12px">
+      <div class="progress-header">
+        <span class="thm-color">THM PROGRESS</span>
+        <span id="thmProgressText" style="color:var(--amber)">0 / 28</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="thmProgressFill" style="width:0%; background: linear-gradient(90deg, #cc4400, #ff6b35); box-shadow: 0 0 8px rgba(255,107,53,0.5);"></div>
+      </div>
+    </div>
+
+    <div class="levels-grid" id="thmGrid"></div>
+
+    <div class="level-detail" id="thmDetail">
+      <div class="detail-header">
+        <div class="detail-title thm-color" id="thmDetailTitle">ROOM 1</div>
+        <div class="detail-platform" style="border-color:#ff6b35; color:#ff6b35">THM</div>
+      </div>
+      <div class="auto-notes" id="thmAutoNotes"></div>
+      <textarea class="user-note-area" id="thmNoteInput" placeholder="> type your notes here..." rows="3" style="border-color: rgba(255,107,53,0.3); color:#ff6b35;"></textarea>
+      <div class="detail-actions">
+        <button class="btn btn-complete" onclick="markLevel('thm', true)" style="border-color:#ff6b35; color:#ff6b35;">[ MARK DONE ]</button>
+        <button class="btn btn-incomplete" onclick="markLevel('thm', false)">[ UNDO ]</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTES PANEL -->
+  <div class="notes-panel" id="notesPanel">
+    <div class="section-title">ALL <span>NOTES</span> // COMPLETED LEVELS</div>
+    <div class="all-notes-list" id="allNotesList"></div>
+  </div>
+
+</div>
+
+<script>
+// ─── MATRIX RAIN ───────────────────────────────────────────────
+const canvas = document.getElementById('matrix');
+const ctx = canvas.getContext('2d');
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+const chars = 'アイウエオカキクケコ0123456789ABCDEF!@#$%^&*<>/\\[]{}|;:,.?~`';
+const fontSize = 14;
+let cols, drops;
+function initMatrix() {
+  cols = Math.floor(canvas.width / fontSize);
+  drops = Array(cols).fill(1);
+}
+initMatrix();
+function drawMatrix() {
+  ctx.fillStyle = 'rgba(0,0,0,0.05)';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = '#00ff41';
+  ctx.font = fontSize + 'px Share Tech Mono';
+  drops.forEach((y,i) => {
+    const c = chars[Math.floor(Math.random()*chars.length)];
+    ctx.fillText(c, i*fontSize, y*fontSize);
+    if(y*fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+    drops[i]++;
+  });
+}
+setInterval(drawMatrix, 50);
+
+// ─── DATA ───────────────────────────────────────────────────────
+const banditNotes = {
+  0:  { tip: 'SSH to bandit.labs.overthewire.org -p 2220', cmd: 'ssh bandit0@bandit.labs.overthewire.org -p 2220' },
+  1:  { tip: 'Password in ~/readme file', cmd: 'cat readme' },
+  2:  { tip: 'File named with dash (-)', cmd: 'cat ./-' },
+  3:  { tip: 'File with spaces in name', cmd: 'cat "spaces in this filename"' },
+  4:  { tip: 'Hidden file in inhere/', cmd: 'ls -la inhere/' },
+  5:  { tip: 'Human-readable file in inhere/', cmd: 'find inhere -type f | xargs file | grep ASCII' },
+  6:  { tip: 'find by size 1033 bytes, non-exec', cmd: 'find inhere -type f -size 1033c ! -executable' },
+  7:  { tip: 'find by user bandit7, group bandit6', cmd: 'find / -user bandit7 -group bandit6 -size 33c 2>/dev/null' },
+  8:  { tip: 'grep "millionth" in data.txt', cmd: 'grep millionth data.txt' },
+  9:  { tip: 'Unique line in sorted file', cmd: 'sort data.txt | uniq -u' },
+  10: { tip: 'Human-readable strings with ==', cmd: 'strings data.txt | grep ==' },
+  11: { tip: 'Base64 encoded', cmd: 'base64 -d data.txt' },
+  12: { tip: 'ROT13 cipher', cmd: 'cat data.txt | tr a-zA-Z n-za-mN-ZA-M' },
+  13: { tip: 'Hexdump → multiple compressions', cmd: 'xxd -r data.txt > /tmp/data && file /tmp/data' },
+  14: { tip: 'SSH private key in /etc/bandit_pass or home', cmd: 'ssh -i sshkey.private bandit14@localhost -p 2220' },
+  15: { tip: 'Submit password to localhost:30000', cmd: 'nc localhost 30000' },
+  16: { tip: 'SSL connection to port 30001', cmd: 'openssl s_client -connect localhost:30001' },
+  17: { tip: 'Scan ports 31000-32000 with nmap', cmd: 'nmap localhost -p 31000-32000' },
+  18: { tip: 'Diff between passwords.old and new', cmd: 'diff passwords.old passwords.new' },
+  19: { tip: 'Password in ~/.bashrc (modified)', cmd: 'ssh bandit18@... "cat ~/readme"' },
+  20: { tip: 'setuid binary runs command as bandit20', cmd: './bandit20-do cat /etc/bandit_pass/bandit20' },
+  21: { tip: 'nc listener + setuid binary', cmd: 'nc -l localhost 1234 & ./suconnect 1234' },
+  22: { tip: 'cron job in /etc/cron.d/', cmd: 'cat /etc/cron.d/cronjob_bandit22' },
+  23: { tip: 'Script uses whoami — override it', cmd: 'cat /usr/bin/cronjob_bandit23.sh' },
+  24: { tip: 'Write a script to /var/spool/bandit24', cmd: 'nano /tmp/myscript.sh' },
+  25: { tip: 'Brute-force 4-digit PIN via netcat', cmd: 'for i in $(seq 0000 9999); do echo "pass $i"; done | nc localhost 30002' },
+  26: { tip: 'Shell is more — escape via v → :e file', cmd: 'more /etc/passwd → v → :set shell=/bin/bash → :shell' },
+  27: { tip: 'Use bandit26 binary like bandit20', cmd: './bandit27-do cat /etc/bandit_pass/bandit27' },
+  28: { tip: 'Git clone from ssh://bandit27-git', cmd: 'git clone ssh://bandit27-git@localhost/home/bandit27-git/repo' },
+  29: { tip: 'Check git log for deleted content', cmd: 'git log -p' },
+  30: { tip: 'Check git branches', cmd: 'git branch -a && git checkout dev' },
+  31: { tip: 'Check git tags', cmd: 'git tag && git show secret' },
+  32: { tip: 'Push a file to remote repo', cmd: 'echo "May I come in?" > key.txt && git add . && git commit && git push' },
+  33: { tip: 'UPPERCASE shell — escape via $0', cmd: '$0' },
+};
+
+const thmRooms = [
+  'Tutorial','Linux Fundamentals 1','Linux Fundamentals 2','Linux Fundamentals 3',
+  'Introductory Networking','Nmap','Network Services','Network Services 2',
+  'Vulnversity','Basic Pentesting','Kenobi','Steel Mountain',
+  'Active Directory Basics','OWASP Top 10','OWASP Juice Shop','Upload Vulnerabilities',
+  'Pickle Rick','Blue','Ice','Blaster',
+  'Hacking with Powershell','Metasploit','Burp Suite','Hydra',
+  'Web Fundamentals','Phishing Emails','Advent of Cyber','What The Shell'
+];
+
+const thmNotes = {
+  0:  { tip: 'Start here — learn THM interface' },
+  1:  { tip: 'Basic Linux: cd, ls, pwd, cat, echo' },
+  2:  { tip: 'File permissions, find, grep' },
+  3:  { tip: 'Users, processes, cron, services' },
+  4:  { tip: 'OSI model, TCP/IP, protocols' },
+  5:  { tip: 'nmap -sV -sC -p- target', cmd: 'nmap -sV -A -T4 <IP>' },
+  6:  { tip: 'SMB, Telnet, FTP enumeration' },
+  7:  { tip: 'NFS, SMTP, MySQL exploitation' },
+  8:  { tip: 'Upload bypass, privesc via SUID', cmd: 'find / -perm -u=s -type f 2>/dev/null' },
+  9:  { tip: 'Enum + privesc fundamentals' },
+  10: { tip: 'Samba enumeration + Proftpd exploit', cmd: 'enum4linux -a <IP>' },
+  11: { tip: 'Windows exploitation — HFS', cmd: 'msfconsole → search rejetto' },
+  12: { tip: 'AD concepts: users, groups, GPO' },
+  13: { tip: '10 web vulnerabilities — hands on' },
+  14: { tip: 'SQLi, XSS, brute force on Juice Shop' },
+  15: { tip: 'File upload bypass → reverse shell' },
+  16: { tip: 'Fun Linux challenge — cat /etc/passwd' },
+  17: { tip: 'MS17-010 EternalBlue Windows', cmd: 'use exploit/windows/smb/ms17_010_eternalblue' },
+  18: { tip: 'CVE-2009-0927 — winrm/ice exploit' },
+  19: { tip: 'Windows privesc → RDP' },
+  20: { tip: 'PowerShell commands for pentest' },
+  21: { tip: 'Metasploit modules, meterpreter' },
+  22: { tip: 'Burp Suite intercept, repeater, intruder' },
+  23: { tip: 'Brute force login with hydra', cmd: 'hydra -l user -P wordlist.txt <IP> http-post-form' },
+  24: { tip: 'HTTP, HTML, JS basics for web hacking' },
+  25: { tip: 'Identify phishing indicators in emails' },
+  26: { tip: 'Christmas themed multi-topic challenge' },
+  27: { tip: 'Shells: reverse, bind, web shells', cmd: 'nc -lvnp 4444' },
+};
+
+// ─── STATE ──────────────────────────────────────────────────────
+let state = JSON.parse(localStorage.getItem('hackerState') || '{}');
+if(!state.bandit) state.bandit = {};
+if(!state.thm) state.thm = {};
+if(!state.notes) state.notes = {};
+
+function save() { localStorage.setItem('hackerState', JSON.stringify(state)); }
+
+let selectedBandit = null;
+let selectedThm = null;
+let activeTab = 'bandit';
+
+// ─── BUILD GRIDS ────────────────────────────────────────────────
+function buildBanditGrid() {
+  const grid = document.getElementById('banditGrid');
+  grid.innerHTML = '';
+  for(let i = 0; i <= 33; i++) {
+    const done = state.bandit[i];
+    const btn = document.createElement('button');
+    btn.className = 'level-btn' + (done ? ' done' : '');
+    btn.textContent = i;
+    if(i === selectedBandit) btn.style.outline = '1px solid var(--green)';
+    btn.onclick = () => selectBanditLevel(i);
+    grid.appendChild(btn);
+  }
+}
+
+function buildThmGrid() {
+  const grid = document.getElementById('thmGrid');
+  grid.innerHTML = '';
+  for(let i = 0; i < thmRooms.length; i++) {
+    const done = state.thm[i];
+    const btn = document.createElement('button');
+    btn.className = 'level-btn' + (done ? ' done' : '');
+    btn.style.fontSize = '11px';
+    btn.textContent = i+1;
+    btn.title = thmRooms[i];
+    if(done) btn.style.cssText += 'background:rgba(255,107,53,0.12);border-color:#ff6b35;color:#ff6b35;text-shadow:0 0 6px rgba(255,107,53,0.5);';
+    btn.onclick = () => selectThmRoom(i);
+    grid.appendChild(btn);
+  }
+}
+
+function selectBanditLevel(i) {
+  selectedBandit = i;
+  const det = document.getElementById('banditDetail');
+  det.classList.add('visible');
+  document.getElementById('banditDetailTitle').textContent = `BANDIT ${i}→${i+1}`;
+  // auto notes
+  const info = banditNotes[i];
+  const autoDiv = document.getElementById('banditAutoNotes');
+  if(info) {
+    let html = '';
+    if(info.tip) html += `<div class="auto-note-item"><strong>TIP:</strong> ${info.tip}</div>`;
+    if(info.cmd) html += `<div class="auto-note-item"><strong>CMD:</strong> ${info.cmd}</div>`;
+    autoDiv.innerHTML = html;
+  } else autoDiv.innerHTML = '';
+  // user note
+  document.getElementById('banditNoteInput').value = state.notes['b'+i] || '';
+  document.getElementById('banditNoteInput').oninput = (e) => {
+    state.notes['b'+i] = e.target.value; save();
+  };
+  buildBanditGrid();
+}
+
+function selectThmRoom(i) {
+  selectedThm = i;
+  const det = document.getElementById('thmDetail');
+  det.classList.add('visible');
+  document.getElementById('thmDetailTitle').textContent = `#${i+1} ${thmRooms[i].toUpperCase()}`;
+  const info = thmNotes[i];
+  const autoDiv = document.getElementById('thmAutoNotes');
+  if(info) {
+    let html = '';
+    if(info.tip) html += `<div class="auto-note-item"><strong>TIP:</strong> ${info.tip}</div>`;
+    if(info.cmd) html += `<div class="auto-note-item" style="border-left-color:#ff6b35"><strong>CMD:</strong> ${info.cmd}</div>`;
+    autoDiv.innerHTML = html;
+  } else autoDiv.innerHTML = '';
+  document.getElementById('thmNoteInput').value = state.notes['t'+i] || '';
+  document.getElementById('thmNoteInput').oninput = (e) => {
+    state.notes['t'+i] = e.target.value; save();
+  };
+  buildThmGrid();
+}
+
+function markLevel(platform, done) {
+  if(platform === 'bandit' && selectedBandit !== null) {
+    if(done) state.bandit[selectedBandit] = true;
+    else delete state.bandit[selectedBandit];
+    save(); buildBanditGrid(); updateStats();
+  }
+  if(platform === 'thm' && selectedThm !== null) {
+    if(done) state.thm[selectedThm] = true;
+    else delete state.thm[selectedThm];
+    save(); buildThmGrid(); updateStats();
+  }
+}
+
+function updateStats() {
+  const banditDone = Object.keys(state.bandit).length;
+  const thmDone = Object.keys(state.thm).length;
+  const total = 34 + thmRooms.length;
+  const done = banditDone + thmDone;
+  const pct = Math.round(done/total*100);
+
+  document.getElementById('totalDone').textContent = done;
+  document.getElementById('totalLevels').textContent = total;
+  document.getElementById('totalPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = done + ' / ' + total;
+
+  document.getElementById('banditProgressText').textContent = banditDone + ' / 34';
+  document.getElementById('banditProgressFill').style.width = Math.round(banditDone/34*100) + '%';
+
+  document.getElementById('thmProgressText').textContent = thmDone + ' / ' + thmRooms.length;
+  document.getElementById('thmProgressFill').style.width = Math.round(thmDone/thmRooms.length*100) + '%';
+}
+
+function buildAllNotes() {
+  const list = document.getElementById('allNotesList');
+  list.innerHTML = '';
+  let found = false;
+
+  for(let i = 0; i <= 33; i++) {
+    const userNote = state.notes['b'+i];
+    const info = banditNotes[i];
+    if(state.bandit[i]) {
+      found = true;
+      const card = document.createElement('div');
+      card.className = 'note-card' + (userNote ? ' has-note' : '');
+      card.innerHTML = `
+        <div class="note-card-header">
+          <span class="note-card-title">BANDIT ${i}→${i+1}</span>
+          <span class="note-card-platform">BANDIT</span>
+        </div>
+        ${userNote ? `<div class="note-card-content">${userNote}</div>` : '<div class="note-card-content" style="opacity:0.3">no notes added</div>'}
+        ${info ? `<div class="note-card-auto">${info.tip || ''}${info.cmd ? ' | '+info.cmd : ''}</div>` : ''}
+      `;
+      list.appendChild(card);
+    }
+  }
+
+  for(let i = 0; i < thmRooms.length; i++) {
+    const userNote = state.notes['t'+i];
+    const info = thmNotes[i];
+    if(state.thm[i]) {
+      found = true;
+      const card = document.createElement('div');
+      card.className = 'note-card' + (userNote ? ' has-note' : '');
+      card.style.borderLeftColor = '#ff6b35';
+      card.innerHTML = `
+        <div class="note-card-header">
+          <span class="note-card-title" style="color:#ff6b35">#${i+1} ${thmRooms[i].toUpperCase()}</span>
+          <span class="note-card-platform" style="border-color:#ff6b35; color:#ff6b35">THM</span>
+        </div>
+        ${userNote ? `<div class="note-card-content" style="color:#ff6b35">${userNote}</div>` : '<div class="note-card-content" style="opacity:0.3">no notes added</div>'}
+        ${info ? `<div class="note-card-auto">${info.tip || ''}${info.cmd ? ' | '+info.cmd : ''}</div>` : ''}
+      `;
+      list.appendChild(card);
+    }
+  }
+
+  if(!found) {
+    list.innerHTML = '<div class="empty-state">[ NO COMPLETED LEVELS YET ]<br><br>COMPLETE A LEVEL TO SEE NOTES HERE</div>';
+  }
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.remove('active');
+    if(['bandit','thm','notes'][i] === tab) t.classList.add('active');
+  });
+  document.getElementById('banditPanel').classList.remove('active-panel');
+  document.getElementById('thmPanel').classList.remove('active-panel');
+  document.getElementById('notesPanel').classList.remove('active-panel');
+
+  if(tab === 'bandit') document.getElementById('banditPanel').classList.add('active-panel');
+  else if(tab === 'thm') document.getElementById('thmPanel').classList.add('active-panel');
+  else { document.getElementById('notesPanel').classList.add('active-panel'); buildAllNotes(); }
+}
+
+// ─── BOOT SEQUENCE ──────────────────────────────────────────────
+setTimeout(() => {
+  document.getElementById('bootScreen').style.opacity = '0';
+  document.getElementById('bootScreen').style.transition = 'opacity 0.5s';
+  setTimeout(() => {
+    document.getElementById('bootScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    buildBanditGrid();
+    buildThmGrid();
+    updateStats();
+    // Auto-select current level (first incomplete)
+    for(let i = 0; i <= 33; i++) {
+      if(!state.bandit[i]) { selectBanditLevel(i); break; }
+    }
+  }, 500);
+}, 3200);
+// Register service worker
+if('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
